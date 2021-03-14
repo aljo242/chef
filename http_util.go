@@ -2,8 +2,8 @@ package http_util
 
 import (
 	"fmt"
-	"net/http"
 	"log"
+	"net/http"
 )
 
 func Print() error {
@@ -21,4 +21,14 @@ func CheckHTTP2Support(w http.ResponseWriter) bool {
 	}
 
 	return ok
+}
+
+// RedirectHTTPS can redirect all http traffic to corresponding https addresses
+func RedirectHTTPS(httpsHost string, debugEnable bool) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if debugEnable {
+			log.Printf("%v\n", httpsHost+r.RequestURI)
+		}
+		http.Redirect(w, r, httpsHost+r.RequestURI, http.StatusMovedPermanently)
+	}
 }
