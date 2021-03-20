@@ -2,8 +2,9 @@ package http_util
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 func Print() error {
@@ -15,20 +16,18 @@ func Print() error {
 func CheckHTTP2Support(w http.ResponseWriter) bool {
 	_, ok := w.(http.Pusher)
 	if ok {
-		log.Printf("HTTP/2 Supported!\n")
+		log.Debug().Msg("HTTP/2 Supported!")
 	} else {
-		log.Printf("HTTP/2 NOT Supported!\n")
+		log.Debug().Msg("HTTP/2 NOT Supported!")
 	}
 
 	return ok
 }
 
 // RedirectHTTPS can redirect all http traffic to corresponding https addresses
-func RedirectHTTPS(httpsHost string, debugEnable bool) func(http.ResponseWriter, *http.Request) {
+func RedirectHTTPS(httpsHost string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if debugEnable {
-			log.Printf("%v\n", httpsHost+r.RequestURI)
-		}
+		log.Debug().Str("destination", httpsHost+r.RequestURI).Msg("Redirect HTTPS")
 		http.Redirect(w, r, httpsHost+r.RequestURI, http.StatusMovedPermanently)
 	}
 }
