@@ -32,3 +32,16 @@ func RedirectHTTPS(httpsHost string, debugEnable bool) func(http.ResponseWriter,
 		http.Redirect(w, r, httpsHost+r.RequestURI, http.StatusMovedPermanently)
 	}
 }
+
+func PushFiles(w http.ResponseWriter, files ...string) error {
+	_, ok := w.(http.Pusher)
+	if !ok {
+		return fmt.Errorf("unable to use http pusher")
+	}
+
+	for f := range files {
+		fmt.Println(f)
+	}
+
+	return nil
+}
