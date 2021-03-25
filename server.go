@@ -108,8 +108,9 @@ func (srv *Server) Quit() error {
 	return errors.New("server not running; cannot shutdown")
 }
 
-// Run ...
-func (srv *Server) Run() {
+// Run starts the running loop of the server and will fire a message to
+// running once running has "fully begun"
+func (srv *Server) Run(running chan struct{}) {
 
 	srv.wg.Add(1)
 
@@ -137,11 +138,11 @@ func (srv *Server) Run() {
 				log.Fatal().Err(err).Msg("ListenAndServe()")
 			}
 		}
-
 	}()
 
 	// once we have run ListenAdnServe*, we are officially running
 	srv.isRunning = true
+	close(running)
 
 	getUserInput := func() {
 		var code int
@@ -165,7 +166,9 @@ func (srv *Server) Run() {
 		}
 	}
 
-	go getUserInput()
+	if srv.config.UserShutdown {
+		go getUserInput()
+	}
 
 	// wait on a quit
 	<-srv.quit

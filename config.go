@@ -18,9 +18,11 @@ type ServerConfig struct {
 	HTTPS        bool   `json:"secure"`
 	DebugLog     bool   `json:"debugLog"`
 	ShutdownCode int    `json:"shutdownCode"`
+	UserShutdown bool   `json:"userShutdown"`
 	CertFile     string `json:"certFile"`
 	KeyFile      string `json:"keyFile"`
 	RootCA       string `json:"rootCA"`
+
 	// TODO add more
 }
 

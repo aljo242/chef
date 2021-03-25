@@ -46,9 +46,3 @@ func PushFiles(w http.ResponseWriter, files ...string) error {
 func basicHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 }
-
-// internal server utility for testing
-func runBasicServer() {
-	http.HandleFunc("/", basicHandler)
-	http.ListenAndServe(":8080", nil)
-}
