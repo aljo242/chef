@@ -7,11 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func Print() error {
-	fmt.Println("vim-go")
-	return nil
-}
-
 // CheckHTTP2Support is a simple test to see if HTTP2 is supported by checking if http.Pusher is in the responsewriter
 func CheckHTTP2Support(w http.ResponseWriter) bool {
 	_, ok := w.(http.Pusher)
@@ -32,15 +27,28 @@ func RedirectHTTPS(httpsHost string) func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+// PushFiles takes an http.ResponseWriter and a variadic amount of file strings
+// the function will iterate through each file and performa an HTTP/2 Push
+// if HTTP/2 is supported AND if the files are valid. Otherwise, will return error
 func PushFiles(w http.ResponseWriter, files ...string) error {
 	_, ok := w.(http.Pusher)
 	if !ok {
 		return fmt.Errorf("unable to use http pusher")
 	}
 
-	for f := range files {
-		fmt.Println(f)
+	for _, fileName := range files {
+		fmt.Println(fileName)
 	}
 
 	return nil
+}
+
+func basicHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+}
+
+// internal server utility for testing
+func runBasicServer() {
+	http.HandleFunc("/", basicHandler)
+	http.ListenAndServe(":8080", nil)
 }
