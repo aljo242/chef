@@ -52,11 +52,3 @@ func PushFiles(w http.ResponseWriter, files ...string) error {
 
 	return nil
 }
-
-func basicTestHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
-	err := PushFiles(w, "./sample/test.html")
-	if err != nil {
-		log.Fatal().Err(err).Msg("UNABLE TO PUSH")
-	}
-}

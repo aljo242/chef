@@ -20,9 +20,9 @@ analyze:
 test:
 # cannot use "-race" flag on ARM systems
 ifeq ($(MY_ARCH), $(ARM))
-	sudo go test -v  -coverprofile=coverage.out
+	sudo go test -v  -coverprofile=coverage.out -p 1
 else 
-	sudo go test -v -race -coverprofile=coverage.out
+	sudo go test -v -race -coverprofile=coverage.out -p 1
 endif
 	go tool cover -html coverage.out -o coverage.html
 
