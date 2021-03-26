@@ -32,7 +32,7 @@ func RedirectHTTPS(httpsHost string) func(http.ResponseWriter, *http.Request) {
 // the function will iterate through each file and performa an HTTP/2 Push
 // if HTTP/2 is supported AND if the files are valid. Otherwise, will return error
 func PushFiles(w http.ResponseWriter, files ...string) error {
-	_, ok := w.(http.Pusher)
+	pusher, ok := w.(http.Pusher)
 	if !ok {
 		return fmt.Errorf("unable to use http pusher")
 	}
