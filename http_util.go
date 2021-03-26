@@ -8,18 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// CheckHTTP2Support is a simple test to see if HTTP2 is supported by checking if http.Pusher is in the responsewriter
-func CheckHTTP2Support(w http.ResponseWriter) bool {
-	_, ok := w.(http.Pusher)
-	if ok {
-		log.Debug().Msg("HTTP/2 Supported!")
-	} else {
-		log.Debug().Msg("HTTP/2 NOT Supported!")
-	}
-
-	return ok
-}
-
 // RedirectHTTPS can redirect all http traffic to corresponding https addresses
 func RedirectHTTPS(httpsHost string) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

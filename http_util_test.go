@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -20,12 +21,22 @@ var (
 	client *http.Client
 )
 
-func basicTestHandler(w http.ResponseWriter, r *http.Request) {
+func pushAttemptHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 	err := PushFiles(w, sampleHTML)
 	if err != nil {
 		log.Error().Err(err).Msg("UNABLE TO PUSH")
 	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func validHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func invalidHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotFound)
 }
 
 func TestMain(m *testing.M) {
@@ -39,7 +50,9 @@ func TestMain(m *testing.M) {
 
 	r := mux.NewRouter()
 	// attach basic handler
-	r.HandleFunc("/valid", basicTestHandler)
+	r.HandleFunc("/valid", validHandler)
+	r.HandleFunc("/invalid", invalidHandler)
+	r.HandleFunc("/pushAttempt", pushAttemptHandler)
 
 	srv := NewServer(cfg, r)
 	go func(ch chan struct{}) {
@@ -71,19 +84,41 @@ func TestMain(m *testing.M) {
 }
 
 func TestValidGetRequest(t *testing.T) {
+	wantStatus := "200 OK"
+
 	r, err := client.Get("http://localhost/valid")
 	if err != nil {
 		fmt.Println(r)
 		t.Errorf("Error with valid get request to server : %v", err)
 	}
 	defer r.Body.Close()
+
+	assert.Equal(t, wantStatus, r.Status)
 }
 
 func TestInvalidGetRequest(t *testing.T) {
-	r, err := client.Get("http://localhost/")
+	wantStatus := "404 Not Found"
+
+	r, err := client.Get("http://localhost/invalid")
 	if err != nil {
 		fmt.Println(r)
 		t.Errorf("Error with invalid get request to server : %v", err)
 	}
 	defer r.Body.Close()
+
+	assert.Equal(t, wantStatus, r.Status)
+}
+
+func TestPushAttemptRequest(t *testing.T) {
+	wantStatus := "200 OK"
+
+	r, err := client.Get("http://localhost/pushAttempt")
+	if err != nil {
+		fmt.Println(r)
+		t.Errorf("Error with invalid get request to server : %v", err)
+	}
+	defer r.Body.Close()
+
+	assert.Equal(t, wantStatus, r.Status)
+
 }
