@@ -3,6 +3,7 @@ package http_util
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 
 	"github.com/rs/zerolog/log"
 )
@@ -37,12 +38,25 @@ func PushFiles(w http.ResponseWriter, files ...string) error {
 	}
 
 	for _, fileName := range files {
-		fmt.Println(fileName)
+		fileName, err := filepath.Abs(filepath.Clean(fileName))
+		if err != nil {
+			return fmt.Errorf("error getting absolute path: %w", err)
+		}
+		log.Debug().Str("filename", fileName).Msg("pushing file")
+		// TODO add options
+		err = pusher.Push(fileName, nil)
+		if err != nil {
+			return fmt.Errorf("error pushing file %v : %w", fileName, err)
+		}
 	}
 
 	return nil
 }
 
-func basicHandler(w http.ResponseWriter, r *http.Request) {
+func basicTestHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
+	err := PushFiles(w, "./sample/test.html")
+	if err != nil {
+		log.Fatal().Err(err).Msg("UNABLE TO PUSH")
+	}
 }

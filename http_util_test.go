@@ -20,7 +20,7 @@ func TestBasic(t *testing.T) {
 
 	r := mux.NewRouter()
 	// attach basic handler
-	r.HandleFunc("/", basicHandler)
+	r.HandleFunc("/", basicTestHandler)
 
 	srv := NewServer(cfg, r)
 	go func(ch chan struct{}) {
