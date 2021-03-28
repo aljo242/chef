@@ -27,11 +27,6 @@ var (
 	client *http.Client
 )
 
-func init() {
-	fmt.Println("GODEBUG:", os.Getenv("GODEBUG"))
-	os.Setenv("GODEBUG", "x509ignoreCN=0")
-}
-
 func pushAttemptHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 	err := PushFiles(w, sampleHTML)
@@ -51,9 +46,9 @@ func invalidHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestMain(m *testing.M) {
-	fmt.Println("GODEBUG:", os.Getenv("GODEBUG"))
 	if !strings.Contains(os.Getenv("GODEBUG"), "x509ignoreCN=0") {
-		os.Exit(-11)
+		fmt.Println("Please set GODEBUG=\"x509ignoreCN=0\" or testing will not work")
+		os.Exit(1)
 	}
 
 	runningChan := make(chan struct{})
