@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	sampleConfigFile = "./sample/sample_config.json"
-	sampleHTML       = "./sample/test.html"
+	sampleConfigFile    = "./sample/sample_config.json"
+	sampleHTML          = "./sample/test.html"
+	incorrectConfigFile = "incorrect.wrong"
 )
 
 var (
@@ -81,6 +82,20 @@ func TestMain(m *testing.M) {
 		os.Exit(-1)
 	}
 	os.Exit(exitCode)
+}
+
+func TestConfig(t *testing.T) {
+	// provide nonexistent file to get incorrect file error
+	_, err := LoadConfig(incorrectConfigFile)
+	if err != ErrIncorrectConfigFile {
+		t.Errorf("error loading non-existent file into config : %v", err)
+	}
+
+	_, err = LoadConfig(sampleHTML)
+	if err != ErrConfigNotJSON {
+		t.Errorf("error loading non-json file into config : %v", err)
+	}
+
 }
 
 func TestValidGetRequest(t *testing.T) {

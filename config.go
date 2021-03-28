@@ -2,6 +2,7 @@ package http_util
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -26,6 +27,10 @@ type ServerConfig struct {
 	// TODO add more
 }
 
+// errors declarations
+var ErrIncorrectConfigFile = errors.New("config file not found")
+var ErrConfigNotJSON = errors.New("config file not JSON")
+
 // LoadConfig returns a config struct given a valid config.json file
 func LoadConfig(filename string) (ServerConfig, error) {
 	cfg := ServerConfig{}
@@ -33,7 +38,7 @@ func LoadConfig(filename string) (ServerConfig, error) {
 	cfgFile, err := os.Open(filePath)
 	if err != nil {
 		return ServerConfig{},
-			fmt.Errorf("error opening config file %v : %w", filename, err)
+			ErrIncorrectConfigFile
 	}
 	defer func() {
 		err := cfgFile.Close()
@@ -46,7 +51,7 @@ func LoadConfig(filename string) (ServerConfig, error) {
 	err = jsonParser.Decode(&cfg)
 	if err != nil {
 		return ServerConfig{},
-			fmt.Errorf("error parsing file %v : %w", filename, err)
+			ErrConfigNotJSON
 	}
 
 	return cfg, nil
