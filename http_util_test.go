@@ -27,6 +27,10 @@ var (
 	client *http.Client
 )
 
+func init() {
+	os.Setenv("GODEBUG", "x509ignoreCN=0")
+}
+
 func pushAttemptHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
 	err := PushFiles(w, sampleHTML)
