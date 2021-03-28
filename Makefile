@@ -18,7 +18,6 @@ analyze:
 
 .PHONY: test
 test:
-	export GODEBUG="x509ignoreCN=0"
 
 # cannot use "-race" flag on ARM systems
 ifeq ($(MY_ARCH), $(ARM))
