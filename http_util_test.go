@@ -2,7 +2,9 @@ package http_util
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
@@ -76,18 +78,25 @@ func TestMain(m *testing.M) {
 	// wait until running message
 	<-runningChan
 
-	clientTLSConfig, _ := getTLSConfig(cfg)
-	clientTLSConfig.InsecureSkipVerify = true
+	caCert, err := ioutil.ReadFile(cfg.RootCA)
+	if err != nil {
+		os.Exit(-11)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
 
 	fmt.Printf("server is running on: %v\n", cfg.Host+":"+cfg.Port)
-	tr := &http.Transport{
-		MaxIdleConns:       10,
-		IdleConnTimeout:    30 * time.Second,
-		DisableCompression: true,
 
-		//TLSClientConfig: clientTLSConfig,
+	client = &http.Client{
+		Transport: &http.Transport{
+			MaxIdleConns:       10,
+			IdleConnTimeout:    30 * time.Second,
+			DisableCompression: true,
+			TLSClientConfig: &tls.Config{
+				RootCAs: caCertPool,
+			},
+		},
 	}
-	client = &http.Client{Transport: tr}
 	time.Sleep(3 * time.Second)
 
 	exitCode := m.Run()
