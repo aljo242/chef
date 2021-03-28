@@ -1,9 +1,11 @@
 package http_util
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 
 const (
 	sampleConfigFile    = "./sample/sample_config.json"
+	sampleConfigFileTLS = "./sample/sample_config_tls.json"
 	sampleHTML          = "./sample/test.html"
 	incorrectConfigFile = "incorrect.wrong"
 )
@@ -21,6 +24,11 @@ const (
 var (
 	client *http.Client
 )
+
+func init() {
+	fmt.Println("GODEBUG:", os.Getenv("GODEBUG"))
+	os.Setenv("GODEBUG", "x509ignoreCN=0")
+}
 
 func pushAttemptHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
@@ -41,9 +49,14 @@ func invalidHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestMain(m *testing.M) {
+	fmt.Println("GODEBUG:", os.Getenv("GODEBUG"))
+	if !strings.Contains(os.Getenv("GODEBUG"), "x509ignoreCN=0") {
+		os.Exit(-11)
+	}
+
 	runningChan := make(chan struct{})
 
-	cfg, err := LoadConfig(sampleConfigFile)
+	cfg, err := LoadConfig(sampleConfigFileTLS)
 	if err != nil {
 		os.Exit(-1)
 	}
@@ -62,11 +75,17 @@ func TestMain(m *testing.M) {
 
 	// wait until running message
 	<-runningChan
+
+	clientTLSConfig, _ := getTLSConfig(cfg)
+	clientTLSConfig.InsecureSkipVerify = true
+
 	fmt.Printf("server is running on: %v\n", cfg.Host+":"+cfg.Port)
 	tr := &http.Transport{
 		MaxIdleConns:       10,
 		IdleConnTimeout:    30 * time.Second,
 		DisableCompression: true,
+
+		//TLSClientConfig: clientTLSConfig,
 	}
 	client = &http.Client{Transport: tr}
 	time.Sleep(3 * time.Second)
@@ -95,13 +114,63 @@ func TestConfig(t *testing.T) {
 	if err != ErrConfigNotJSON {
 		t.Errorf("error loading non-json file into config : %v", err)
 	}
+}
+
+func TestTLSConfig(t *testing.T) {
+	// test loading default config with no TLS
+	cfg, err := LoadConfig(sampleConfigFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// will throw error since no key pair is not present in config
+	_, err = getTLSConfig(cfg)
+	if err != os.ErrNotExist { // should be returned if no PEM files found in getTLSConfig
+		t.Error(err)
+	}
+
+	///////////////////////////////////////////////////////////////
+
+	// test loading default config with  TLS
+	cfg, err = LoadConfig(sampleConfigFileTLS)
+	if err != nil {
+		t.Error(err)
+	}
+
+	fmt.Printf("Opening %v...\n", cfg.KeyFile)
+	f, err := os.Open(cfg.KeyFile)
+	if err != nil {
+		t.Error(err)
+	}
+	f.Close()
+
+	fmt.Printf("Opening %v...\n", cfg.CertFile)
+	f, err = os.Open(cfg.CertFile)
+	if err != nil {
+		t.Error(err)
+	}
+	f.Close()
+
+	fmt.Printf("Loading X509 key pair...\n")
+	_, err = tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = getTLSConfig(cfg)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// test loading default config with TLS but no root CA specified
 
 }
 
 func TestValidGetRequest(t *testing.T) {
 	wantStatus := "200 OK"
 
-	r, err := client.Get("http://localhost/valid")
+	fmt.Println("GODEBUG:", os.Getenv("GODEBUG"))
+	r, err := client.Get("https://localhost/valid")
 	if err != nil {
 		fmt.Println(r)
 		t.Errorf("Error with valid get request to server : %v", err)

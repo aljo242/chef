@@ -18,11 +18,13 @@ analyze:
 
 .PHONY: test
 test:
+	export GODEBUG="x509ignoreCN=0"
+
 # cannot use "-race" flag on ARM systems
 ifeq ($(MY_ARCH), $(ARM))
-	sudo go test -v  -coverprofile=coverage.out -p 1
+	sudo GODEBUG="x509ignoreCN=0" go test -v  -coverprofile=coverage.out -p 1
 else 
-	sudo go test -v -race -coverprofile=coverage.out -p 1
+	sudo GODEBUG="x509ignoreCN=0" go test -v -race -coverprofile=coverage.out -p 1
 endif
 	go tool cover -html coverage.out -o coverage.html
 

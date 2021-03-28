@@ -32,9 +32,10 @@ func serverShutdownCallback() {
 }
 
 func getTLSConfig(cfg ServerConfig) (*tls.Config, error) {
+
 	cer, err := tls.LoadX509KeyPair(cfg.CertFile, cfg.KeyFile)
 	if err != nil {
-		return &tls.Config{MinVersion: tls.VersionTLS12}, fmt.Errorf("error loading key pair (%v, %v) : %w", cfg.CertFile, cfg.KeyFile, err)
+		return &tls.Config{MinVersion: tls.VersionTLS12}, os.ErrNotExist
 	}
 
 	rootCAPool := x509.NewCertPool()
@@ -42,7 +43,7 @@ func getTLSConfig(cfg ServerConfig) (*tls.Config, error) {
 	// read rootCA file into byte
 	f, err := os.Open(cfg.RootCA)
 	if err != nil {
-		return &tls.Config{MinVersion: tls.VersionTLS12}, fmt.Errorf("error opening Root CA file %v : %w", cfg.RootCA, err)
+		return &tls.Config{MinVersion: tls.VersionTLS12}, os.ErrNotExist
 	}
 
 	b, err := ioutil.ReadAll(f)
@@ -68,7 +69,11 @@ func NewServer(cfg ServerConfig, r *mux.Router) *Server {
 	addr := cfg.IP + ":" + cfg.Port
 
 	if cfg.HTTPS {
-		tlsCfg, _ = getTLSConfig(cfg)
+		var err error
+		tlsCfg, err = getTLSConfig(cfg)
+		if err != nil {
+			log.Fatal().Err(err).Msg("error getting TLS config")
+		}
 		// TODO handle error
 	}
 
