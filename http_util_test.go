@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
 func TestConfig(t *testing.T) {
 	// provide nonexistent file to get incorrect file error
 	_, err := LoadConfig(incorrectConfigFile)
-	if err != ErrIncorrectConfigFile {
+	if err != os.ErrNotExist {
 		t.Errorf("error loading non-existent file into config : %v", err)
 	}
 

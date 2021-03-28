@@ -28,7 +28,6 @@ type ServerConfig struct {
 }
 
 // errors declarations
-var ErrIncorrectConfigFile = errors.New("config file not found")
 var ErrConfigNotJSON = errors.New("config file not JSON")
 
 // LoadConfig returns a config struct given a valid config.json file
@@ -37,8 +36,7 @@ func LoadConfig(filename string) (ServerConfig, error) {
 	filePath := filepath.Clean(filename)
 	cfgFile, err := os.Open(filePath)
 	if err != nil {
-		return ServerConfig{},
-			ErrIncorrectConfigFile
+		return ServerConfig{}, os.ErrNotExist
 	}
 	defer func() {
 		err := cfgFile.Close()
