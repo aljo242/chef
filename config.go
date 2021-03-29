@@ -18,6 +18,7 @@ type ServerConfig struct {
 	ChooseIP     bool   `json:"chooseIP"`
 	HTTPS        bool   `json:"secure"`
 	DebugLog     bool   `json:"debugLog"`
+	CacheMaxAge  int    `json:"cacheMaxAge"`
 	ShutdownCode int    `json:"shutdownCode"`
 	UserShutdown bool   `json:"userShutdown"`
 	CertFile     string `json:"certFile"`
