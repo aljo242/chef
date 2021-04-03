@@ -1,4 +1,4 @@
-module github.com/aljo242/http_util
+module github.com/aljo242/chef
 
 go 1.16
 
